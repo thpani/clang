@@ -545,6 +545,7 @@ void CodeGenFunction::EmitWhileStmt(const WhileStmt &S) {
   ConditionScope.ForceCleanup();
 
   // Branch to the loop header again.
+  EmitStopPoint(&S);
   EmitBranch(LoopHeader.getBlock());
 
   // Emit the exit block.
@@ -591,8 +592,10 @@ void CodeGenFunction::EmitDoStmt(const DoStmt &S) {
       EmitBoolCondBranch = false;
 
   // As long as the condition is true, iterate the loop.
-  if (EmitBoolCondBranch)
+  if (EmitBoolCondBranch) {
+    EmitStopPoint(&S);
     Builder.CreateCondBr(BoolCondVal, LoopBody, LoopExit.getBlock());
+  }
 
   // Emit the exit block.
   EmitBlock(LoopExit.getBlock());
@@ -685,6 +688,7 @@ void CodeGenFunction::EmitForStmt(const ForStmt &S) {
   BreakContinueStack.pop_back();
 
   ConditionScope.ForceCleanup();
+  EmitStopPoint(&S);
   EmitBranch(CondBlock);
 
   ForScope.ForceCleanup();
@@ -755,6 +759,7 @@ void CodeGenFunction::EmitCXXForRangeStmt(const CXXForRangeStmt &S) {
 
   BreakContinueStack.pop_back();
 
+  EmitStopPoint(&S);
   EmitBranch(CondBlock);
 
   ForScope.ForceCleanup();
